@@ -1,0 +1,4 @@
+moduleName = VertxExtension
+moduleVersion = 1.0.0
+extensionClasses = com.ttpod.vertx.groovy.ext.VertxExtension
+staticExtensionClasses = com.ttpod.vertx.groovy.ext.StaticExtension
