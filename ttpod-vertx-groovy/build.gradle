@@ -16,4 +16,4 @@ dependencies {
 }
 
 // publish to Maven Nexus.
-// gradle install && gradle upload
+// gradle install  upload
