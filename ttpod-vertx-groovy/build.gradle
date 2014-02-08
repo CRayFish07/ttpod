@@ -5,8 +5,11 @@ apply from: "${rootProject.projectDir}/gradle/nexus.gradle"
 
 dependencies {
 
-    provided  'io.vertx:vertx-core:2.0.2-final'
-    provided  'io.vertx:vertx-platform:2.0.2-final'
+//    provided  'io.vertx:vertx-core:2.0.2-final'
+//    provided  'io.vertx:vertx-platform:2.0.2-final'
+
+    provided  'io.vertx:vertx-core:2.1M3'
+    provided  'io.vertx:vertx-platform:2.1M3'
 //    provided 'org.projectlombok:lombok:0.11.8'
     provided  'org.codehaus.groovy:groovy-all:2.2.1+:indy'
 
