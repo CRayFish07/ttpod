@@ -2,6 +2,7 @@ package com.ttpod.vertx.groovy.ext;
 
 import groovy.lang.Closure;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.MultiMap;
 import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.HttpServerRequest;
@@ -43,6 +44,34 @@ public class VertxExtension {
                 hanlder.call(event);
             }
         });
+    }
+
+    public static String getAt(MultiMap map,String name) {
+        return map.get(name);
+    }
+
+    public static Integer Int(MultiMap map,String name,Integer val) {
+        String str =  map.get(name);
+        if(null != str  && str.length() > 0){
+            try{
+                return new Integer(str);
+            }catch (NumberFormatException ignored){
+                ignored.printStackTrace();
+            }
+        }
+        return val;
+    }
+
+    public static Short Short(MultiMap map,String name,Short val) {
+        String str =  map.get(name);
+        if(null != str  && str.length() > 0){
+            try{
+                return new Short(str);
+            }catch (NumberFormatException ignored){
+                ignored.printStackTrace();
+            }
+        }
+        return val;
     }
 
 }
