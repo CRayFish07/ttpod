@@ -34,6 +34,15 @@ public class SimpleRouteMatcher implements Handler<HttpServerRequest> {
         String method = request.method();
         String uri =  request.path().intern();
         Handler<HttpServerRequest> handler = null;
+        
+//        switch (method){
+//            case GET:
+//                handler = getMap.get(uri);
+//                break;
+//            case POST:
+//                handler = postMap.get(uri);
+//                break;
+//        }
         if(GET.equals(method)){
             handler = getMap.get(uri);
         }else if (POST.equals(method)) {
