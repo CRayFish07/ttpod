@@ -23,25 +23,19 @@ public class VertxExtension {
         container.deployModule(name,new JsonObject(config));
     }
 
-
-    public static void hello(Container container) {
-        System.out.println("   VertxExtension OK ..");
-    }
-
-
-    public static void Get(RouteMatcher route,String path,final Closure hanlder) {
+    public static void Get(RouteMatcher route,String path,final Closure handler) {
         route.get(path,new Handler<HttpServerRequest>(){
             public void handle(HttpServerRequest event) {
-                hanlder.call(event);
+                handler.call(event);
             }
         });
     }
 
 
-    public static void Send (EventBus bus,String address, Map<String,Object> msg,final Closure hanlder){
+    public static void Send (EventBus bus,String address, Map<String,Object> msg,final Closure handler){
         bus.send(address,new JsonObject(msg),new Handler<Message>() {
             public void handle(Message event) {
-                hanlder.call(event);
+                handler.call(event);
             }
         });
     }
