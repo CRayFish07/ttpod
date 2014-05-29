@@ -33,7 +33,22 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class ZookeeperJavaMap<K,V> implements ICacheService<K,V>{
 
 
+
+
     static final boolean isTest = Boolean.getBoolean("env.test");
+
+    static final String NAME_SPACE = System.getProperty("cache.ns","").trim();
+
+    static final String PREFIX = "/JavaMap/";
+
+
+    static String nameSpace = PREFIX;
+
+    static {
+        setNameSpace(NAME_SPACE);
+    }
+
+
 
     @Resource
     protected CuratorFramework curatorFramework;
@@ -43,7 +58,7 @@ public abstract class ZookeeperJavaMap<K,V> implements ICacheService<K,V>{
     NodeCache nodeCache;
 
     protected String dataKey(){
-        return "/JavaMap/"+getClass().getName();
+        return nameSpace+getClass().getName();
     }
 
     protected Map<K,Object> cache;
@@ -59,10 +74,12 @@ public abstract class ZookeeperJavaMap<K,V> implements ICacheService<K,V>{
 
     public int refresh() {
 
-        log.info(" Begin  Refresh ..");
+
         if (isTest) {
+            log.info(" isTest Env , Skip  Refresh ..");
             return 0;
         }
+        log.info(" Begin  Refresh ..");
         byte[] mapData = loadByteObjects(nodeCache.getCurrentData());
         Map<K, Object> value =  byte2map(mapData);
         if(null != value){
@@ -107,6 +124,16 @@ public abstract class ZookeeperJavaMap<K,V> implements ICacheService<K,V>{
             }
         }
         return null;
+    }
+
+    public static void setNameSpace(String given) {
+        String ns = PREFIX;
+        if(given.length()>0){
+            ns += given +'/';
+            nameSpace = ns;
+            System.out.println("ZookeeperJavaMap use NameSpace =========> : "+ ns );
+
+        }
     }
 
 }

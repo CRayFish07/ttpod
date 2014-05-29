@@ -62,8 +62,6 @@ public  abstract class CacheUtil {
      * @throws Exception
      */
     public static void bigDataLinkToZoo(CuratorFramework zoo, String path, DBCollection coll, byte[] data) throws Exception {
-        new EnsurePath(path).ensure(zoo.getZookeeperClient());
-        zoo.setData().forPath(path, String.valueOf(System.currentTimeMillis()).getBytes(Charset.forName("utf8")));
 
         coll.remove(new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH, path));// DO Clean
         coll.createIndex(new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH,1).append(ZookeeperJavaMapInMongo.SLICE_FIELD,1));
@@ -83,6 +81,9 @@ public  abstract class CacheUtil {
 
             coll.save(obj);
         }
+
+        new EnsurePath(path).ensure(zoo.getZookeeperClient());//Notify..
+        zoo.setData().forPath(path, String.valueOf(System.currentTimeMillis()).getBytes(Charset.forName("utf8")));
 
     }
 

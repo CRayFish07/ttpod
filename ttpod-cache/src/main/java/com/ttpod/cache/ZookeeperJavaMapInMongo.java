@@ -30,8 +30,10 @@ public abstract class ZookeeperJavaMapInMongo<K, V> extends ZookeeperJavaMap<K, 
 
     protected byte[] loadByteObjects(ChildData node) {
 
+        String dataKey = dataKey();
+        log.debug("use dataKey : {}",dataKey);
         List<DBObject> byte_segs = mongo.getDB(dbName()).getCollection(collectionName()).find(
-                new BasicDBObject(DATAKEY_PATH, dataKey()), new BasicDBObject(DATA_FIELD, 1)
+                new BasicDBObject(DATAKEY_PATH, dataKey), new BasicDBObject(DATA_FIELD, 1)
         ).sort(new BasicDBObject(SLICE_FIELD, 1)).toArray();
 
         if (byte_segs.isEmpty()) {
