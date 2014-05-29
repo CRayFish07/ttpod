@@ -1,0 +1,11 @@
+version = '1.0'
+
+
+apply from: "${rootProject.projectDir}/gradle/nexus.gradle"
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.7'
+    compile 'org.mongodb:mongo-java-driver:2.12.2'
+    compile 'org.apache.zookeeper:zookeeper:3.4.6'
+    compile 'org.apache.curator:curator-recipes:2.4.2'
+}
