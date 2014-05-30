@@ -1,6 +1,7 @@
 package com.ttpod.cache;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -15,7 +16,7 @@ public abstract class ZookeeperJavaMap<K,V>  extends ZookeeperCache<Map<K,V>> im
     protected Map<K,V> cache;
 
     protected void renderCacheData(Map<K,V> cache){
-        this.cache = cache;
+        this.cache = new ConcurrentHashMap<>(cache);
         log.info(" Refresh End , got {} rows.", cache.size());
     }
 
