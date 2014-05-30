@@ -21,7 +21,7 @@ public  abstract class CacheUtil {
 
 
     static final int _1MB = 1 << 20;
-    static final int _16MB = 16 * _1MB;
+    static final int _12MB = 12 * _1MB; // mongo MAX Size 16777501 is larger than MaxDocumentSize 16793600.
 
 
     /**
@@ -66,7 +66,7 @@ public  abstract class CacheUtil {
         coll.remove(new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH, path));// DO Clean
         coll.createIndex(new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH,1).append(ZookeeperJavaMapInMongo.SLICE_FIELD,1));
 
-        int step = _16MB, len = data.length;
+        int step = _12MB, len = data.length;
         int i = 0;
         for (int pos = 0; pos < len; pos += step) {
             int copy = Math.min(len - pos, step);
@@ -92,7 +92,7 @@ public  abstract class CacheUtil {
      * @see #bigDataLinkToZoo(org.apache.curator.framework.CuratorFramework, String, com.mongodb.DBCollection, byte[])
      */
     public static void bigDataLinkToZoo(CuratorFramework zoo, String path, DBCollection coll, Serializable javaMap) throws Exception {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(_16MB);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(_12MB);
         try (ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(javaMap);
             out.flush();
