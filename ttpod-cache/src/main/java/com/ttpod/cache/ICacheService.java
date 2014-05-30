@@ -19,7 +19,7 @@ package com.ttpod.cache;
  */
 public interface ICacheService<Key,Value> {
 
-    int  refresh();
+//    int  refresh();
 
 //    IdStrategy ID_STRATEGY = new DefaultIdStrategy();
 //    Schema<HashMap> MAP_SCHEMA =  RuntimeSchema.getSchema(HashMap.class, ID_STRATEGY);
