@@ -67,6 +67,7 @@ public abstract class ZookeeperCache<Obj>{
 
         if (isTest) {
             log.info(" isTest Env , Skip  Refresh ..");
+            renderCacheData(null);
             return 0;
         }
         log.info(" Begin  Refresh ..");

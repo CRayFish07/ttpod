@@ -1,5 +1,6 @@
 package com.ttpod.cache;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,8 +18,13 @@ public abstract class ZookeeperJavaMap<K,V>  extends ZookeeperCache<Map<K,V>> im
 
     @Override
     protected void renderCacheData(Map<K,V> cache){
-        this.cache = new ConcurrentHashMap<>(cache);
-        log.info(" Refresh End , got {} rows.", cache.size());
+
+        if(null == cache){
+            this.cache = Collections.emptyMap();
+        }else{
+            this.cache = new ConcurrentHashMap<>(cache);
+            log.info(" Refresh End , got {} rows.", cache.size());
+        }
     }
 
 //    protected <Value>void renderCacheData(Map<K,Value> cache){
