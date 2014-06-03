@@ -15,10 +15,17 @@ public abstract class ZookeeperJavaMap<K,V>  extends ZookeeperCache<Map<K,V>> im
 
     protected Map<K,V> cache;
 
+    @Override
     protected void renderCacheData(Map<K,V> cache){
         this.cache = new ConcurrentHashMap<>(cache);
         log.info(" Refresh End , got {} rows.", cache.size());
     }
+
+//    protected <Value>void renderCacheData(Map<K,Value> cache){
+//        this.cache = new ConcurrentHashMap<>(cache.size());
+//        this.cache.putAll(cache);
+//        log.info(" Refresh End , got {} rows.", cache.size());
+//    }
 
     public V get(K k){
         return cache.get(k);
