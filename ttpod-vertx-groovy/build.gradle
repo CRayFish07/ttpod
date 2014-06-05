@@ -15,7 +15,7 @@ dependencies {
         transitive = false
     }
 //    provided 'org.projectlombok:lombok:0.11.8'
-    provided  'org.codehaus.groovy:groovy-all:2.2.+:indy'
+    provided  'org.codehaus.groovy:groovy-all:2.3.0:indy'
 
     testCompile 'junit:junit:4.11'
     testCompile 'com.google.caliper:caliper:1.0-beta-1'
