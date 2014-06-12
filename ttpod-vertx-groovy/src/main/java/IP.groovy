@@ -4,6 +4,7 @@
  * @author: yangyang.cong@ttpod.com
  */
 
+[].collate(1024)
 Enumeration<NetworkInterface> netInterfaces  = NetworkInterface.getNetworkInterfaces();
 String name = "eth0" ;
 while (netInterfaces.hasMoreElements()) {
