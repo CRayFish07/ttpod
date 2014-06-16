@@ -22,7 +22,8 @@ public abstract class ZookeeperJavaMap<K,V>  extends ZookeeperCache<Map<K,V>> im
         if(null == cache){
             this.cache = Collections.emptyMap();
         }else{
-            this.cache = new ConcurrentHashMap<>(cache);
+//            this.cache = new ConcurrentHashMap<>(cache);
+            this.cache = cache;
             log.info(" Refresh End , got {} rows.", cache.size());
         }
     }
