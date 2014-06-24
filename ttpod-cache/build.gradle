@@ -1,4 +1,4 @@
-version = '1.2'
+version = '1.2.4'
 
 
 apply from: "${rootProject.projectDir}/gradle/nexus.gradle"
@@ -6,6 +6,13 @@ apply from: "${rootProject.projectDir}/gradle/nexus.gradle"
 dependencies {
     compile 'org.slf4j:slf4j-api:1.7.7'
     compile 'org.mongodb:mongo-java-driver:2.12.2'
-    compile 'org.apache.zookeeper:zookeeper:3.4.6'
+    compile ('org.apache.zookeeper:zookeeper:3.4.6'){
+        exclude module: 'slf4j-log4j12'
+        exclude module: 'log4j'
+        exclude module: 'jline'
+        exclude module: 'slf4j-api'
+        exclude module: 'jackson-mapper-asl'
+    }
     compile "org.apache.curator:curator-recipes:$curatorVersion"
+
 }

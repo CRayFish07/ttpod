@@ -3,7 +3,6 @@ package com.ttpod.cache;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
-import org.apache.curator.framework.recipes.cache.ChildData;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
@@ -28,7 +27,7 @@ public abstract class ZookeeperJavaMapInMongo<K, V> extends ZookeeperJavaMap<K, 
     @Resource
     protected Mongo mongo;
 
-    protected byte[] loadByteObjects(ChildData node) {
+    protected byte[] transform(byte[] nodeData) {
 
         String dataKey = dataKey();
         log.debug("use dataKey : {}",dataKey);

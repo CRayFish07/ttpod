@@ -1,18 +1,19 @@
 package com.ttpod.cache;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.NodeCache;
-import org.apache.curator.framework.recipes.cache.NodeCacheListener;
+import com.ttpod.cache.zoo.NodeDataCache;
+import com.ttpod.cache.zoo.NodeDataListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.ObjectInputStream;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author: yangyang.cong@ttpod.com
  */
-public abstract class ZookeeperCache<Obj>{
+public abstract class ZookeeperCache<Obj> implements Closeable{
 
 
     static final boolean isTest = Boolean.getBoolean("env.test");
@@ -49,11 +50,10 @@ public abstract class ZookeeperCache<Obj>{
 
 
     @Resource
-    protected CuratorFramework curatorFramework;
+    protected String  zookeeperUrl;
 
     protected   Logger log = LoggerFactory.getLogger(getClass());
 
-    NodeCache nodeCache;
 
     protected String dataKey(){
         return nameSpace+getClass().getName();
@@ -61,47 +61,63 @@ public abstract class ZookeeperCache<Obj>{
 
     protected abstract void renderCacheData(Obj cache);
 
+    NodeDataCache nodeDataCache;
 
-    public int refresh() {
 
-
-        if (isTest) {
-            log.info(" isTest Env , Skip  Refresh ..");
-            renderCacheData(null);
-            return 0;
-        }
-        log.info(" Begin  Refresh ..");
-        byte[] data = loadByteObjects(nodeCache.getCurrentData());
-        Obj value =  deserialize(data);
-        if(null != value){
-            renderCacheData(value);
-            return data.length;
-        }else{
-            log.info(" Refresh End(Error) , got NULL.");
-            return 0;
-        }
-    }
+    protected boolean needDesri = true;
 
 
 
+    final AtomicBoolean isInit =  new AtomicBoolean(false);
     @PostConstruct
     protected void init(){
-        nodeCache = new NodeCache(curatorFramework, dataKey());
-        nodeCache.getListenable().addListener(new NodeCacheListener() {
-            public void nodeChanged() throws Exception {
-                refresh();
+        nodeDataCache = new NodeDataCache(zookeeperUrl, dataKey(),new NodeDataListener() {
+            @Override
+            public void onDataChanged(byte[] data) {
+
+                if (isTest) {
+                    isInit.set(true);
+                    log.info(" isTest Env , Skip  Refresh from {}..",zookeeperUrl);
+                    renderCacheData(null);
+                    return;
+                }
+
+                log.info(" Begin  Refresh ..");
+                byte[] dataTran = transform(data);
+                Obj value;
+                if(needDesri) {
+                    value = deserialize(dataTran);
+                }else{
+                    value = (Obj) dataTran;
+                }
+                if(null != value){
+                    renderCacheData(value);
+                }else{
+                    log.info(" Refresh End(Error) , got NULL.");
+                }
+                isInit.set(true);
             }
         });
-        try {
-            nodeCache.start(true);
-        } catch (Exception e) {
-            log.error("Start NodeCache error for path: {}, error info: {}",  dataKey(), e.getMessage());
+        log.info("wait init ....");
+        int i = 0;
+        while (!isInit.get() && (++i) < 60){
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        refresh();
+        log.info("Init Over....");
+
     }
 
-    protected byte[] loadByteObjects(ChildData node){
-        return node.getData();
+    @PreDestroy
+    public void close(){
+        if(null!=nodeDataCache)nodeDataCache.close();
+    }
+
+    protected byte[] transform(byte[] nodeData){
+        return nodeData;
     }
 
 
@@ -123,6 +139,17 @@ public abstract class ZookeeperCache<Obj>{
             nameSpace = ns;
             System.out.println("ZookeeperJavaMap use NameSpace =========> : "+ ns );
 
+        }
+    }
+
+    {
+        Type[]  typeParameters = ((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments();
+        if( typeParameters.length == 0 ){
+            typeParameters = ((ParameterizedType)getClass().getSuperclass().getGenericSuperclass()).getActualTypeArguments();
+        }
+        if((typeParameters.length == 1) && (byte[].class == typeParameters[0])){
+            needDesri = false;
+            log.info("byte[] not need to deserialize....");
         }
     }
 }
