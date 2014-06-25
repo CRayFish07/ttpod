@@ -2,10 +2,13 @@ package com.ttpod.cache;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.EnsurePath;
 import org.bson.types.Binary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -23,6 +26,8 @@ public  abstract class CacheUtil {
     static final int _1MB = 1 << 20;
     static final int _12MB = 12 * _1MB; // mongo MAX Size 16777501 is larger than MaxDocumentSize 16793600.
 
+    static final Logger log = LoggerFactory.getLogger(CacheUtil.class);
+
 
     /**
      * default Zookeeper Limit Data Node < 1MB.
@@ -34,7 +39,7 @@ public  abstract class CacheUtil {
      * @param path    zookeeper path
      * @param javaMap object impl Serializable
      * @throws Exception
-     * @see org.apache.zookeeper.Zookeeper#create
+     * @link org.apache.zookeeper.Zookeeper#create
      */
     public static void smallDataToZoo(CuratorFramework zoo, String path, Serializable javaMap) throws Exception {
         ByteArrayOutputStream bos = new ByteArrayOutputStream(_1MB);
@@ -63,7 +68,9 @@ public  abstract class CacheUtil {
      */
     public static void bigDataLinkToZoo(CuratorFramework zoo, String path, DBCollection coll, byte[] data) throws Exception {
 
-        coll.remove(new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH, path));// DO Clean
+        DBObject query = new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH, path);
+        coll.remove(query);// DO Clean
+        Thread.sleep(500L);// wait mongo sync
         coll.createIndex(new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH,1).append(ZookeeperJavaMapInMongo.SLICE_FIELD,1));
 
         int step = _12MB, len = data.length;
@@ -80,6 +87,13 @@ public  abstract class CacheUtil {
             obj.put("slice_len", slice.length);
 
             coll.save(obj);
+            Thread.sleep(100L);//wait mongo sync
+        }
+
+        Thread.sleep(500L);
+        while (coll.count(query) != i){
+            log.info("wait mongo sync with master.sleep 300ms.");
+            Thread.sleep(300);
         }
 
         new EnsurePath(path).ensure(zoo.getZookeeperClient());//Notify..
