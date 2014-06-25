@@ -90,9 +90,8 @@ public abstract class ZookeeperCache<Obj> implements Closeable{
                 }else{
                     value = (Obj) dataTran;
                 }
-                if(null != value){
-                    renderCacheData(value);
-                }else{
+                renderCacheData(value);
+                if(null == value){
                     log.info(" Refresh End(Error) , got NULL.");
                 }
                 isInit.set(true);

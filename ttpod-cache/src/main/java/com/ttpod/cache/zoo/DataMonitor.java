@@ -14,6 +14,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Executor;
 import java.util.zip.CRC32;
 
 
@@ -33,10 +34,12 @@ class DataMonitor implements Watcher, StatCallback {
 
     Runnable onClosing;
 
-    public DataMonitor(String znode,NodeDataListener listener,Runnable onClosing) {
+    final Executor exe;
+    public DataMonitor(String znode,NodeDataListener listener,Runnable onClosing,Executor exe) {
         this.znode = znode;
         this.listener = listener;
         this.onClosing = onClosing;
+        this.exe =exe;
     }
 
     public void init( ZooKeeper zk){
@@ -50,33 +53,30 @@ class DataMonitor implements Watcher, StatCallback {
 
     static final Logger log  = LoggerFactory.getLogger(DataMonitor.class);
 
+
+
     public void process(WatchedEvent event) {
-        String path = event.getPath();
         if (event.getType() == Event.EventType.None) {
-
             log.info("connection has changed , with status : {} ",event.getState());
-
             // We are are being told that the state of the
             // connection has changed
             switch (event.getState()) {
-            case SyncConnected:
-                // In this particular example we don't need to do anything
-                // here - watches are automatically re-registered with 
-                // server and any watches triggered while the client was 
-                // disconnected will be delivered (in order of course)
-                break;
-            case Expired:
-                // It's all over
-                needReInit = true;
-//                listener.closing(Code.SESSIONEXPIRED.intValue());
-                onClosing.run();
-                break;
+                case SyncConnected:
+                    // In this particular example we don't need to do anything
+                    // here - watches are automatically re-registered with
+                    // server and any watches triggered while the client was
+                    // disconnected will be delivered (in order of course)
+                    break;
+                case Expired:
+                    // It's all over
+                    needReInit = true;
+    //                listener.closing(Code.SESSIONEXPIRED.intValue());
+                    exe.execute(onClosing);
+                    break;
             }
-        } else {
-            if (path != null && path.equals(znode)) {
+        } else  if ( znode.equals(event.getPath()) ) {
                 // Something has changed on the node, let's find out
                 zk.exists(znode, true, this, null);
-            }
         }
     }
 
@@ -93,7 +93,7 @@ class DataMonitor implements Watcher, StatCallback {
         case Code.NoAuth:
             needReInit = true;
 //            listener.closing(rc);
-            onClosing.run();
+            exe.execute(onClosing);
             return;
         default:
             // Retry errors
@@ -116,7 +116,13 @@ class DataMonitor implements Watcher, StatCallback {
         Long hash = hash(b);
         if ((b == null && null != prevDataHash)
                 || (b != null && !hash.equals(prevDataHash))) {
-            listener.onDataChanged(b);
+            final byte[] data = b;
+            exe.execute(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onDataChanged(data);
+                }
+            });
             prevDataHash = hash;
         }
     }
