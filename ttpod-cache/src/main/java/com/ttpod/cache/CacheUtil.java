@@ -88,6 +88,7 @@ public  abstract class CacheUtil {
 
             coll.save(obj);
             Thread.sleep(100L);//wait mongo sync
+            // TODO Restart ERROR during insert Not Complete.
         }
 
         Thread.sleep(500L);

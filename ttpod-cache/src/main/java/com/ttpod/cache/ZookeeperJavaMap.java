@@ -14,17 +14,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class ZookeeperJavaMap<K,V>  extends ZookeeperCache<Map<K,V>> implements ICacheService<K,V>{
 
-    protected Map<K,V> cache;
+    protected volatile Map<K,V> cache;
 
     @Override
-    protected void renderCacheData(Map<K,V> cache){
+    protected synchronized void renderCacheData(Map<K,V> cache){
 
         if(null == cache){
             this.cache = Collections.emptyMap();
         }else{
 //            this.cache = new ConcurrentHashMap<>(cache);
+            Map old = this.cache;
             this.cache = cache;
             log.info(" Refresh End , got {} rows.", cache.size());
+            if(null != old) old.clear();
         }
     }
 

@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author: yangyang.cong@ttpod.com
  */
-public abstract class ZookeeperCache<Obj> implements Closeable{
+public abstract class ZookeeperCache<Obj> implements Closeable,NodeDataListener{
 
 
     static final boolean isTest = Boolean.getBoolean("env.test");
@@ -71,33 +71,8 @@ public abstract class ZookeeperCache<Obj> implements Closeable{
     final AtomicBoolean isInit =  new AtomicBoolean(false);
     @PostConstruct
     protected void init(){
-        nodeDataCache = new NodeDataCache(zookeeperUrl, dataKey(),new NodeDataListener() {
-            @Override
-            public void onDataChanged(byte[] data) {
-
-                if (isTest) {
-                    isInit.set(true);
-                    log.info(" isTest Env , Skip  Refresh from {}..",zookeeperUrl);
-                    renderCacheData(null);
-                    return;
-                }
-
-                log.info(" Begin  Refresh ..");
-                byte[] dataTran = transform(data);
-                Obj value;
-                if(needDesri) {
-                    value = deserialize(dataTran);
-                }else{
-                    value = (Obj) dataTran;
-                }
-                renderCacheData(value);
-                if(null == value){
-                    log.info(" Refresh End(Error) , got NULL.");
-                }
-                isInit.set(true);
-            }
-        });
-        log.info("wait init ....");
+        nodeDataCache = new NodeDataCache(zookeeperUrl, dataKey(),this);
+        log.info("Wait Init ...");
         int i = 0;
         while (!isInit.get() && (++i) < 60){
             try {
@@ -106,10 +81,34 @@ public abstract class ZookeeperCache<Obj> implements Closeable{
                 e.printStackTrace();
             }
         }
-        log.info("Init Over....");
+        log.info("Init Over !");
 
     }
 
+    @Override
+    public void onDataChanged(byte[] data) {
+
+        if (isTest) {
+            isInit.set(true);
+            log.info(" isTest Env , Skip  Refresh from {}..",zookeeperUrl);
+            renderCacheData(null);
+            return;
+        }
+
+        log.info(" Begin  Refresh ..");
+        byte[] dataTran = transform(data);
+        Obj value;
+        if(needDesri) {
+            value = deserialize(dataTran);
+        }else{
+            value = (Obj) dataTran;
+        }
+        renderCacheData(value);
+        if(null == value){
+            log.info(" Refresh End(Error) , got NULL.");
+        }
+        isInit.set(true);
+    }
     @PreDestroy
     public void close(){
         if(null!=nodeDataCache)nodeDataCache.close();
