@@ -103,15 +103,7 @@ class DataMonitor implements Watcher, StatCallback {
 
         byte b[] = null;
         if (exists) {
-            try {
-                b = zk.getData(znode, false, null);
-            } catch (KeeperException e) {
-                // We don't need to worry about recovering now. The watch
-                // callbacks will kick off any exception handling
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                return;
-            }
+            b=currentData();
         }
         Long hash = hash(b);
         if ((b == null && null != prevDataHash)
@@ -136,5 +128,19 @@ class DataMonitor implements Watcher, StatCallback {
         crc.update(data);
         return crc.getValue();
         //return  Long.toHexString(crc.getValue());
+    }
+
+
+    public byte[] currentData(){
+        try {
+            return zk.getData(znode, false, null);
+        } catch (KeeperException e) {
+            // We don't need to worry about recovering now. The watch
+            // callbacks will kick off any exception handling
+            log.error("get node data  ERROR: " +znode,e);
+        } catch (InterruptedException ignored) {
+
+        }
+        return null;
     }
 }

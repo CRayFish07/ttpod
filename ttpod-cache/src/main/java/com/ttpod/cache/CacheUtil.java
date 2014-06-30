@@ -4,6 +4,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
+import com.ttpod.cache.transform.MongoTransform;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.EnsurePath;
 import org.bson.types.Binary;
@@ -41,13 +42,16 @@ public  abstract class CacheUtil {
      * @throws Exception
      * @link org.apache.zookeeper.Zookeeper#create
      */
-    public static void smallDataToZoo(CuratorFramework zoo, String path, Serializable javaMap) throws Exception {
+    public static byte[] smallDataToZoo(CuratorFramework zoo, String path, Serializable javaMap) throws Exception {
         ByteArrayOutputStream bos = new ByteArrayOutputStream(_1MB);
+        byte[] bytes = null;
         try (ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(javaMap);
             out.flush();
-            smallDataToZoo(zoo, path, bos.toByteArray());
+            bytes = bos.toByteArray();
+            smallDataToZoo(zoo, path, bytes);
         }
+        return bytes;
     }
 
     /**
@@ -68,10 +72,10 @@ public  abstract class CacheUtil {
      */
     public static void bigDataLinkToZoo(CuratorFramework zoo, String path, DBCollection coll, byte[] data) throws Exception {
 
-        DBObject query = new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH, path);
+        DBObject query = new BasicDBObject(MongoTransform.DATAKEY_PATH, path);
         coll.remove(query);// DO Clean
         Thread.sleep(500L);// wait mongo sync
-        coll.createIndex(new BasicDBObject(ZookeeperJavaMapInMongo.DATAKEY_PATH,1).append(ZookeeperJavaMapInMongo.SLICE_FIELD,1));
+        coll.createIndex(new BasicDBObject(MongoTransform.DATAKEY_PATH,1).append(MongoTransform.SLICE_FIELD,1));
 
         int step = _12MB, len = data.length;
         int i = 0;
@@ -81,9 +85,9 @@ public  abstract class CacheUtil {
             System.arraycopy(data, pos, slice, 0, copy);
             BasicDBObject obj = new BasicDBObject();
             obj.put("_id", path + i);
-            obj.put(ZookeeperJavaMapInMongo.DATA_FIELD, new Binary(slice));
-            obj.put(ZookeeperJavaMapInMongo.SLICE_FIELD, i++);
-            obj.put(ZookeeperJavaMapInMongo.DATAKEY_PATH, path);
+            obj.put(MongoTransform.DATA_FIELD, new Binary(slice));
+            obj.put(MongoTransform.SLICE_FIELD, i++);
+            obj.put(MongoTransform.DATAKEY_PATH, path);
             obj.put("slice_len", slice.length);
 
             coll.save(obj);
@@ -106,29 +110,32 @@ public  abstract class CacheUtil {
      *
      * @see #bigDataLinkToZoo(org.apache.curator.framework.CuratorFramework, String, com.mongodb.DBCollection, byte[])
      */
-    public static void bigDataLinkToZoo(CuratorFramework zoo, String path, DBCollection coll, Serializable javaMap) throws Exception {
+    public static byte[] bigDataLinkToZoo(CuratorFramework zoo, String path, DBCollection coll, Serializable javaMap) throws Exception {
         ByteArrayOutputStream bos = new ByteArrayOutputStream(_12MB);
+        byte[] bytes = null;
         try (ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(javaMap);
             out.flush();
-            bigDataLinkToZoo(zoo, path, coll, bos.toByteArray());
+            bytes = bos.toByteArray();
+            bigDataLinkToZoo(zoo, path, coll, bytes);
         }
+        return bytes;
     }
     /**
      *
      * @see #bigDataLinkToZoo(org.apache.curator.framework.CuratorFramework, String, com.mongodb.DBCollection, byte[])
      */
     public static void bigDataLinkToZoo(CuratorFramework zoo, String path, Mongo mongo, Serializable javaMap) throws Exception {
-        bigDataLinkToZoo(zoo, path, mongo.getDB(ZookeeperJavaMapInMongo.DB_NAME)
-                .getCollection(ZookeeperJavaMapInMongo.COLL_NAME),javaMap);
+        bigDataLinkToZoo(zoo, path, mongo.getDB(MongoTransform.DB_NAME)
+                .getCollection(MongoTransform.COLL_NAME),javaMap);
     }
     /**
      *
      * @see #bigDataLinkToZoo(org.apache.curator.framework.CuratorFramework, String, com.mongodb.DBCollection, byte[])
      */
     public static void bigDataLinkToZoo(CuratorFramework zoo, String path, Mongo mongo, byte[] javaMap) throws Exception {
-        bigDataLinkToZoo(zoo, path, mongo.getDB(ZookeeperJavaMapInMongo.DB_NAME)
-                .getCollection(ZookeeperJavaMapInMongo.COLL_NAME),javaMap);
+        bigDataLinkToZoo(zoo, path, mongo.getDB(MongoTransform.DB_NAME)
+                .getCollection(MongoTransform.COLL_NAME),javaMap);
     }
 
 }

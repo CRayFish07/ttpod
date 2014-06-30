@@ -100,5 +100,9 @@ public class NodeDataCache implements  Runnable,Closeable{
 
     }
 
+    public byte[] currentData(){
+        return dm.currentData();
+    }
+
 
 }

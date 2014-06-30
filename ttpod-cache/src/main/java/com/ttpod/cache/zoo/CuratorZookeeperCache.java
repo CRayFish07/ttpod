@@ -1,4 +1,4 @@
-package com.ttpod.cache;
+package com.ttpod.cache.zoo;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;

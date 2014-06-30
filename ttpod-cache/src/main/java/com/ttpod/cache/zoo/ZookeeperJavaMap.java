@@ -1,8 +1,9 @@
-package com.ttpod.cache;
+package com.ttpod.cache.zoo;
+
+import com.ttpod.cache.ICacheService;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -12,12 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author: yangyang.cong@ttpod.com
  */
-public abstract class ZookeeperJavaMap<K,V>  extends ZookeeperCache<Map<K,V>> implements ICacheService<K,V>{
+public abstract class ZookeeperJavaMap<K,V>  extends ZookeeperCache<Map<K,V>> implements ICacheService<K,V> {
 
     protected volatile Map<K,V> cache;
 
     @Override
-    protected synchronized void renderCacheData(Map<K,V> cache){
+    public synchronized void renderCacheData(Map<K,V> cache){
 
         if(null == cache){
             this.cache = Collections.emptyMap();
